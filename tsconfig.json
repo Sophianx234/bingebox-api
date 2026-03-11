@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    // 1. File Layout
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // 2. Environment Settings (Optimized for modern Node.js)
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    
+    // 3. Library & Type definitions
+    "lib": ["ES2022"],
+    "types": ["node"],
+
+    // 4. Interoperability (Crucial for Express)
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // 5. Strict Typechecking
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
