@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express'; // 1. Import Swagger UI
 import { getDocs } from './docs/openapi.js'; // 2. Import your generator
 import userRoutes from './routes/user.routes.js';
+import movieRoutes from './routes/movie.routes.js';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // Plug in the user routes!
 app.use('/api/users', userRoutes);
+app.use('/api/movies', movieRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
