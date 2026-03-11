@@ -1,14 +1,30 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  username    String       @unique      // A required unique handle (e.g., @movienerd99)
+  password    String                    // REQUIRED: We will store the encrypted hash here, NEVER plain text
+  name        String                    // Made this required instead of optional
+  birthdate   DateTime                  // Required for age verification
+  avatar      String?                   // Optional profile picture URL
+  bio         String?                   // Optional short bio for their public profile
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt   // Prisma automatically updates this when the user changes their profile
+  savedMovies SavedMovie[] 
+}
+
+model SavedMovie {
+  id          Int      @id @default(autoincrement())
+  tmdbId      Int      
+  title       String
+  posterPath  String?
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }
