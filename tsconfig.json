@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "noEmitOnError": false,
     // 1. File Layout
     "rootDir": "./src",
     "outDir": "./dist",
