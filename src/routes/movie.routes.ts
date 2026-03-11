@@ -11,6 +11,8 @@ import { protect } from "../middleware/auth.middleware.js";
 const router = Router();
 
 // All movie routes are protected
+
+router.use(protect); // Apply the protect middleware to all routes in this router
 // router.use(protect)
 router.post("/", saveMovie);
 router.get("/", getSavedMovies);
