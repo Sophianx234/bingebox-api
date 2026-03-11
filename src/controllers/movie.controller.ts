@@ -29,7 +29,7 @@ export const saveMovie = async (req: AuthRequest, res: Response) => {
 
 export const getSavedMovies = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = Number(req.user?.userId);
     const movies = await getUserMoviesFromDB(userId as number);
     return res.status(200).json(movies);
   } catch (error) {
