@@ -1,0 +1,27 @@
+import { Router } from "express";
+import {
+  saveMovie,
+  getSavedMovies,
+  rateMovie,
+  toggleFavorite,
+} from "../controllers/movie.controller.js";
+import { markDownloaded } from "../controllers/movie.controller.js";
+import { protect } from "../middleware/auth.middleware.js";
+
+const router = Router();
+
+// All movie routes are protected
+// router.use(protect)
+router.post("/", saveMovie);
+router.get("/", getSavedMovies);
+
+// POST /api/movies/rate -> Updates the star rating of a saved movie
+router.post("/rate", rateMovie);
+
+// POST /api/movies/download -> Marks a movie as downloaded
+router.post("/download", markDownloaded);
+
+// POST /api/movies/favorite -> Toggles a saved movie's favorite status
+router.post("/favorite", toggleFavorite);
+
+export default router;
