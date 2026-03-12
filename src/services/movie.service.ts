@@ -1,88 +1,98 @@
 import { prisma } from "../lib/prisma.js";
 
+// We require title and posterPath for EVERYTHING now, 
+// just in case we need to create a new row on the fly!
 export type MovieInput = {
   tmdbId: number;
   title: string;
-  posterPath: string;
-  isFavorite?: boolean;
-  rating?: number; // Optional: User's star rating (1-5)
+  posterPath: string | null;
 };
-// Save a movie to a specific user
-export const saveMovieToDB = async (userId: number, movieData: MovieInput) => {
-  return await prisma.savedMovie.create({
+
+// 1. TOGGLE WATCHLIST (Replaces saveMovieToDB)
+export const toggleWatchlistInDB = async (userId: number, movieData: MovieInput) => {
+  const existing = await prisma.userMovieInteraction.findUnique({
+    where: { userId_tmdbId: { userId, tmdbId: movieData.tmdbId } },
+  });
+
+  if (existing) {
+    // If it exists, just flip the inWatchlist boolean
+    return await prisma.userMovieInteraction.update({
+      where: { id: existing.id },
+      data: { inWatchlist: !existing.inWatchlist },
+    });
+  }
+
+  // If it doesn't exist, create it and set inWatchlist to true
+  return await prisma.userMovieInteraction.create({
     data: {
+      userId,
       tmdbId: movieData.tmdbId,
       title: movieData.title,
       posterPath: movieData.posterPath,
-      userId: userId, // Link the movie to the user
+      inWatchlist: true,
     },
   });
 };
 
-export const toggleFavoriteInDB = async (userId: number, tmdbId: number) => {
-  const movie = await prisma.savedMovie.findFirst({
-    where: { userId, tmdbId },
+// 2. TOGGLE FAVORITE
+export const toggleFavoriteInDB = async (userId: number, movieData: MovieInput) => {
+  const existing = await prisma.userMovieInteraction.findUnique({
+    where: { userId_tmdbId: { userId, tmdbId: movieData.tmdbId } },
   });
 
-  if (!movie) {
-    throw new Error("You must save a movie before favoriting it.");
+  if (existing) {
+    const updated = await prisma.userMovieInteraction.update({
+      where: { id: existing.id },
+      data: { isFavorite: !existing.isFavorite },
+    });
+    return { isFavorite: updated.isFavorite };
   }
 
-  const updated = await prisma.savedMovie.update({
-    where: { id: movie.id },
-    data: { isFavorite: !movie.isFavorite }, // Flips true to false, or false to true
+  const created = await prisma.userMovieInteraction.create({
+    data: {
+      userId,
+      tmdbId: movieData.tmdbId,
+      title: movieData.title,
+      posterPath: movieData.posterPath,
+      isFavorite: true,
+    },
   });
-
-  return { isFavorite: updated.isFavorite };
-};
-// Get all saved movies for a specific user
-export const getUserMoviesFromDB = async (userId: number) => {
-  return await prisma.savedMovie.findMany({
-    where: { userId },
-    orderBy: { id: "desc" }, // Show newest saves first
-  });
+  return { isFavorite: created.isFavorite };
 };
 
-export const updateMovieRatingInDB = async (
-  userId: number,
-  tmdbId: number,
-  rating: number,
-) => {
-  // 1. Find the exact movie in the user's saved list
-  const movie = await prisma.savedMovie.findFirst({
-    where: { userId, tmdbId },
+// 3. UPDATE RATING
+export const updateMovieRatingInDB = async (userId: number, movieData: MovieInput, rating: number) => {
+  const existing = await prisma.userMovieInteraction.findUnique({
+    where: { userId_tmdbId: { userId, tmdbId: movieData.tmdbId } },
   });
 
-  // 2. If they haven't saved it yet, they can't rate it!
-  if (!movie) {
-    throw new Error(
-      "You must save the movie to your watchlist before rating it.",
-    );
+  if (existing) {
+    return await prisma.userMovieInteraction.update({
+      where: { id: existing.id },
+      data: { rating },
+    });
   }
 
-  // 3. Update the rating
-  const updatedMovie = await prisma.savedMovie.update({
-    where: { id: movie.id },
-    data: { rating },
+  return await prisma.userMovieInteraction.create({
+    data: {
+      userId,
+      tmdbId: movieData.tmdbId,
+      title: movieData.title,
+      posterPath: movieData.posterPath,
+      rating, // Save the rating instantly
+    },
   });
-
-  return updatedMovie;
 };
 
-
-export const markMovieAsDownloadedInDB = async (
-  userId: number,
-  movieData: MovieInput,
-) => {
-  // 1. Check if the movie already exists in their list
-  const existingMovie = await prisma.savedMovie.findFirst({
-    where: { userId, tmdbId: movieData.tmdbId },
+// 4. MARK AS DOWNLOADED
+export const markMovieAsDownloadedInDB = async (userId: number, movieData: MovieInput) => {
+  const existing = await prisma.userMovieInteraction.findUnique({
+    where: { userId_tmdbId: { userId, tmdbId: movieData.tmdbId } },
   });
 
-  // 2. If it exists, UPDATE it
-  if (existingMovie) {
-    return await prisma.savedMovie.update({
-      where: { id: existingMovie.id },
+  if (existing) {
+    return await prisma.userMovieInteraction.update({
+      where: { id: existing.id },
       data: {
         isDownloaded: true,
         downloadedAt: new Date(),
@@ -90,15 +100,22 @@ export const markMovieAsDownloadedInDB = async (
     });
   }
 
-  // 3. If it does NOT exist, CREATE it seamlessly in the background
-  return await prisma.savedMovie.create({
+  return await prisma.userMovieInteraction.create({
     data: {
+      userId,
       tmdbId: movieData.tmdbId,
       title: movieData.title,
       posterPath: movieData.posterPath,
-      userId: userId,
-      isDownloaded: true, // Mark it downloaded immediately
-      downloadedAt: new Date(), // Set the timestamp
+      isDownloaded: true,
+      downloadedAt: new Date(),
     },
+  });
+};
+
+// 5. GET ALL USER INTERACTIONS
+export const getUserMoviesFromDB = async (userId: number) => {
+  return await prisma.userMovieInteraction.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" }, // Automatically sorts by the most recently touched movie!
   });
 };

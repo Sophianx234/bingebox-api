@@ -7,33 +7,45 @@ datasource db {
 }
 
 model User {
-  id          Int          @id @default(autoincrement())
-  email       String       @unique
-  username    String       @unique      // A required unique handle (e.g., @movienerd99)
-  password    String                    // REQUIRED: We will store the encrypted hash here, NEVER plain text
-  name        String                    // Made this required instead of optional
-  birthdate   DateTime                  // Required for age verification
-  avatar      String?                   // Optional profile picture URL
-  bio         String?                   // Optional short bio for their public profile
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt   // Prisma automatically updates this when the user changes their profile
-  savedMovies SavedMovie[] 
+  id                 Int                    @id @default(autoincrement())
+  email              String                 @unique
+  username           String                 @unique     
+  password           String                     
+  name               String                     
+  birthdate          DateTime                 
+  avatar             String?                  
+  bio                String?                  
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt   
+  
+  // Updated relationship name
+  movieInteractions  UserMovieInteraction[] 
+  
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
 }
 
-model SavedMovie {
+// Renamed from SavedMovie to UserMovieInteraction
+model UserMovieInteraction {
   id           Int       @id @default(autoincrement())
   tmdbId       Int
   title        String
   posterPath   String?
-  isFavorite   Boolean   @default(false)
-  rating       Int?     
-  isDownloaded Boolean   @default(false) // <--- Tracks if they downloaded it
-  downloadedAt DateTime?                   // <--- Tracks exactly when they downloaded it
+  
+  // --- THE 3 INDEPENDENT STATES ---
+  inWatchlist  Boolean   @default(false) // Replaces "Saved"
+  isFavorite   Boolean   @default(false) // "Loved"
+  isDownloaded Boolean   @default(false) // "Downloaded"
+  
+  rating       Int?      
+  downloadedAt DateTime?                   
+
   userId       Int
   user         User      @relation(fields: [userId], references: [id])
+  
   createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt // Highly recommended to add this!
 
+  // Ensures a user only has ONE record per movie
   @@unique([userId, tmdbId]) 
 }
