@@ -14,8 +14,7 @@ const router = Router();
 
 router.use(protect); // Apply the protect middleware to all routes in this router
 // router.use(protect)
-router.post("/", saveMovie);
-router.get("/", getSavedMovies);
+router.post("/", saveMovie).get("/", getSavedMovies);
 
 // POST /api/movies/rate -> Updates the star rating of a saved movie
 router.post("/rate", rateMovie);
