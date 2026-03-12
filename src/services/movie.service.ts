@@ -34,6 +34,18 @@ export const toggleWatchlistInDB = async (userId: number, movieData: MovieInput)
   });
 };
 
+
+
+// GET ALL USER FAVORITES
+export const getUserFavoritesFromDB = async (userId: number) => {
+  return await prisma.userMovieInteraction.findMany({
+    where: { 
+      userId: userId,
+      isFavorite: true // Only pull movies they actually favorited!
+    },
+    orderBy: { updatedAt: "desc" }, // Show the most recently favorited movies first
+  });
+};
 // 2. TOGGLE FAVORITE
 export const toggleFavoriteInDB = async (userId: number, movieData: MovieInput) => {
   // 1. Check if the interaction row already exists

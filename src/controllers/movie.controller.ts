@@ -29,6 +29,27 @@ export const saveMovie = async (req: AuthRequest, res: Response) => {
   }
 };
 
+
+import { getUserFavoritesFromDB } from '../services/movie.service.js';
+
+// GET FAVORITE MOVIES
+export const getFavoriteMovies = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId as number;
+    
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const favorites = await getUserFavoritesFromDB(userId);
+    return res.status(200).json(favorites);
+
+  } catch (error: any) {
+    console.error("Fetch Favorites Error:", error);
+    return res.status(500).json({ error: 'Failed to fetch favorite movies' });
+  }
+};
+
 // 2. GET USER LIBRARY
 export const getSavedMovies = async (req: AuthRequest, res: Response) => {
   try {
