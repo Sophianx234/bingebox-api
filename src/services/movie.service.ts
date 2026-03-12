@@ -36,10 +36,12 @@ export const toggleWatchlistInDB = async (userId: number, movieData: MovieInput)
 
 // 2. TOGGLE FAVORITE
 export const toggleFavoriteInDB = async (userId: number, movieData: MovieInput) => {
+  // 1. Check if the interaction row already exists
   const existing = await prisma.userMovieInteraction.findUnique({
     where: { userId_tmdbId: { userId, tmdbId: movieData.tmdbId } },
   });
 
+  // 2. If it exists, just flip the favorite switch!
   if (existing) {
     const updated = await prisma.userMovieInteraction.update({
       where: { id: existing.id },
@@ -48,6 +50,7 @@ export const toggleFavoriteInDB = async (userId: number, movieData: MovieInput) 
     return { isFavorite: updated.isFavorite };
   }
 
+  // 3. THE MISSING PIECE: If it does NOT exist, create a new row and set isFavorite to true!
   const created = await prisma.userMovieInteraction.create({
     data: {
       userId,
@@ -57,6 +60,7 @@ export const toggleFavoriteInDB = async (userId: number, movieData: MovieInput) 
       isFavorite: true,
     },
   });
+  
   return { isFavorite: created.isFavorite };
 };
 
