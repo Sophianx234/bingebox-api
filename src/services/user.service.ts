@@ -86,3 +86,20 @@ export const generatePasswordResetToken = async (email: string) => {
 
   return resetToken; // Send the UNHASHED version to the user's email
 };
+
+
+// Update User Avatar
+export const updateUserAvatarInDB = async (userId: number, avatarUrl: string) => {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { avatar: avatarUrl },
+    // We select specific fields so we don't accidentally send the password back!
+    select: { 
+      id: true, 
+      name: true, 
+      email: true, 
+      username: true, 
+      avatar: true 
+    } 
+  });
+};

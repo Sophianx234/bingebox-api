@@ -4,8 +4,52 @@ import { generatePasswordResetToken, loginUserInDB, registerUserInDB } from '../
 import { generateToken } from '../utils/jwt.util.js';
 import { loginSchema, registerSchema } from '../validations/user.schema.js';
 import { sendEmail } from '../utils/mail.util.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import cloudinary from '../lib/cloudinary.js';
+import { updateUserAvatarInDB } from '../services/user.service.js';
 
 
+
+
+
+export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId as number;
+    
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ error: "No image file provided" });
+      return;
+    }
+
+    // 1. Convert the RAM buffer into a Base64 URI (Vercel-safe!)
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    // 2. Upload directly to Cloudinary
+    const cldRes = await cloudinary.uploader.upload(dataURI, {
+      folder: "bingebox_avatars", // Puts all avatars in a neat folder in your Cloudinary dashboard
+      resource_type: "auto",
+    });
+
+    // 3. Save the secure URL to your PostgreSQL Database
+    const updatedUser = await updateUserAvatarInDB(userId, cldRes.secure_url);
+
+    // 4. Send the updated user back to React Native
+    res.status(200).json({ 
+      message: "Avatar updated successfully", 
+      user: updatedUser 
+    });
+
+  } catch (error) {
+    console.error("Avatar Upload Error:", error);
+    res.status(500).json({ error: "Failed to upload avatar" });
+  }
+};
 export const createUser = async (req: Request, res: Response) => {
   try {
     // 1. Validate the body (Zod handles birthdate strings, emails, etc.)
