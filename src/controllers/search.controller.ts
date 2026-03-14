@@ -41,7 +41,7 @@ export const getSearchHistory = async (req: AuthRequest, res: Response) => {
 export const removeSearch = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId as number;
-    const searchId = parseInt(req.params.id);
+    const searchId = parseInt(req.params.id as string);
 
     if (isNaN(searchId)) {
       return res.status(400).json({ error: 'Invalid search ID' });
