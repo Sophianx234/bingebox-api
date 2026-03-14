@@ -20,6 +20,8 @@ model User {
   
   // Updated relationship name
   movieInteractions  UserMovieInteraction[] 
+  watchProgress      WatchProgress[]        // <-- ADD THIS
+  searchHistory      SearchHistory[]
   
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
@@ -48,4 +50,48 @@ model UserMovieInteraction {
 
   // Ensures a user only has ONE record per movie
   @@unique([userId, tmdbId]) 
+}
+
+model WatchProgress {
+  id                   Int      @id @default(autoincrement())
+  tmdbId               Int
+  mediaType            String   // 'movie' or 'tv'
+  title                String
+  posterPath           String?
+  
+  // For TV Shows. Leave these null for Movies.
+  seasonNumber         Int?     
+  episodeNumber        Int?     
+  
+  // Tracking the exact playback position
+  stoppedAtSeconds     Int      @default(0)
+  totalDurationSeconds Int?     // Helps calculate the progress bar percentage
+  isCompleted          Boolean  @default(false)
+  
+  userId               Int
+  user                 User     @relation(fields: [userId], references: [id])
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Ensures we only have ONE progress record per specific movie or specific TV episode for a user
+  @@unique([userId, tmdbId, seasonNumber, episodeNumber])
+}
+
+// --- NEW MODEL ---
+model SearchHistory {
+  id        Int      @id @default(autoincrement())
+  query     String   // The actual search term, e.g., "Batman"
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // OPTIONAL BUT HIGHLY RECOMMENDED: 
+  // This ensures if a user searches for "Batman" 5 times, it only saves it once 
+  // and just updates the `updatedAt` timestamp. This keeps your database clean 
+  // and makes rendering a "Recent Searches" list much easier.
+  @@unique([userId, query])
 }

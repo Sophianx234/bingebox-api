@@ -25,6 +25,6 @@ router.post("/download", markDownloaded);
 
 // POST /api/movies/favorite -> Toggles a saved movie's favorite status
 router.post("/favorite", toggleFavorite);
-router.get('/favorite', protect, getFavoriteMovies);
+router.get('/favorite', getFavoriteMovies);
 
 export default router;

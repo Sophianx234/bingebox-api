@@ -5,7 +5,8 @@ import jwt from 'jsonwebtoken';
 export interface AuthRequest extends Request {
   user?: {
     userId: number;
-  };
+    
+}
 }
 
 export const protect = async (
