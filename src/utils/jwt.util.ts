@@ -6,20 +6,31 @@ interface TokenPayload {
   email: string;
 }
 
-/**
- * Generates a JWT for a user
- * @param payload - The data to encode (userId, email)
- * @returns string - The signed token
- */
-export const generateToken = (payload: TokenPayload): string => {
+
+
+// 1. THE ACCESS TOKEN (Short-Lived: 15 Minutes)
+export const generateAccessToken = (payload: TokenPayload): string => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
-    // In production, you definitely want to throw an error if the secret is missing
     throw new Error('JWT_SECRET is not defined in environment variables');
   }
 
   return jwt.sign(payload, secret, {
-    expiresIn: '24h',
+    expiresIn: '15m', 
+  });
+};
+
+// 2. THE REFRESH TOKEN (Long-Lived: 6 Months)
+// Notice we usually only need the userId in the refresh payload
+export const generateRefreshToken = (payload: {userId:number}): string => {
+  const secret = process.env.REFRESH_SECRET;
+
+  if (!secret) {
+    throw new Error('REFRESH_SECRET is not defined in environment variables');
+  }
+
+  return jwt.sign(payload, secret, {
+    expiresIn: '180d', 
   });
 };

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { generatePasswordResetToken, loginUserInDB, registerUserInDB } from '../services/user.service.js';
+import { generatePasswordResetToken, loginUserInDB, refreshUserTokenInDB, registerUserInDB } from '../services/user.service.js';
 import { generateToken } from '../utils/jwt.util.js';
 import { loginSchema, registerSchema } from '../validations/user.schema.js';
 import { sendEmail } from '../utils/mail.util.js';
@@ -96,6 +96,34 @@ return res.status(201).json({
 };
 
 
+// Import the service we just wrote
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    // Mobile apps usually send the refresh token in the request body
+    const { refreshToken } = req.body;
+
+    // 1. Call the Service
+    const result = await refreshUserTokenInDB(refreshToken);
+
+    // 2. Success Response
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken
+    });
+
+  } catch (error: any) {
+    // Catch our custom 401 or 403 errors from the service
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
+
+    // Fallback for unexpected server crashes
+    console.error("Refresh Token Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 
 export const loginUser = async (req: Request, res: Response) => {

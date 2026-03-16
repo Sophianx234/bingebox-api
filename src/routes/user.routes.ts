@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { createUser, loginUser, uploadAvatar } from '../controllers/user.controller.js';
+import { createUser, loginUser, refreshToken, uploadAvatar } from '../controllers/user.controller.js';
 import { protect } from '../middleware/auth.middleware.js'; // Adjust this path if your middleware is located elsewhere!
 
 const router = Router();
@@ -16,6 +16,7 @@ const upload = multer({ storage });
 router.post('/register', createUser);
 router.post('/signin', loginUser);
 
+router.post('/refresh', refreshToken);
 // ==========================================
 // PROTECTED ROUTES (Requires Token)
 // ==========================================

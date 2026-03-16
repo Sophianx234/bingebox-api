@@ -22,6 +22,8 @@ model User {
   movieInteractions  UserMovieInteraction[] 
   watchProgress      WatchProgress[]        // <-- ADD THIS
   searchHistory      SearchHistory[]
+  // ADD THIS LINE:
+  refreshToken String?  // Optional, because they won't have one until they log in
   
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
