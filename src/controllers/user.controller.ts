@@ -7,6 +7,7 @@ import { AuthRequest } from '../middleware/auth.middleware.js';
 import cloudinary from '../lib/cloudinary.js';
 import { updateUserAvatarInDB } from '../services/user.service.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.util.js';
+import { prisma } from '../lib/prisma.js';
 
 
 
@@ -67,6 +68,10 @@ export const createUser = async (req: Request, res: Response) => {
       userId: newUser.id 
     }); 
 
+    await prisma.user.update({
+        where: { id: newUser.id },
+        data: { refreshToken: refreshToken } // <-- This updates the null column!
+      });
     // 2. Return the exact keys your mobile app is looking for
     return res.status(201).json({
       message: 'User created successfully!',

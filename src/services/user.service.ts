@@ -60,6 +60,12 @@ export const loginUserInDB = async (data: LoginInput) => {
   // file where generateAccessToken lives!
   const refreshToken = generateRefreshToken({ userId: user.id });
 
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken: refreshToken } // <-- This updates the null column!
+  });
+
   // 4. Return the exact payload the React Native app needs
   return {
     user: sanitizedUser,
@@ -77,43 +83,39 @@ export const refreshUserTokenInDB = async (clientRefreshToken: string) => {
   }
 
   try {
-    // 1. Verify the signature and expiration of the Refresh Token
+    // 1. Verify the signature and expiration (This is your real security check!)
     const decoded = jwt.verify(
       clientRefreshToken, 
       process.env.REFRESH_SECRET!
     ) as { userId: number };
 
-    // 2. Find the user in the database
+    // 2. Ensure the user still exists in your system
     const user = await prisma.user.findUnique({ 
       where: { id: decoded.userId } 
     });
 
-    // 3. SECURITY CHECK: Does the token match what is in the database?
-    // If it doesn't match, or the user is deleted, reject it immediately.
-    if (!user || user.refreshToken !== clientRefreshToken) {
-      const error = new Error('Invalid or revoked refresh token');
-      (error as any).statusCode = 403; // 403 Forbidden is standard here
+    if (!user) {
+      const error = new Error('User no longer exists');
+      (error as any).statusCode = 403;
       throw error;
     }
 
-    // 4. THE SLIDING WINDOW: Generate a brand new pair of tokens
+    // 3. THE SLIDING WINDOW: Generate a brand new pair of tokens
     const newAccessToken = generateAccessToken({ userId: user.id, email: user.email });
     const newRefreshToken = generateRefreshToken({ userId: user.id });
 
-    // 5. Save the new Refresh Token to the database, overwriting the old one
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken: newRefreshToken }
-    });
-
-    // 6. Return the fresh tokens
+    // 4. Return the fresh tokens directly to the controller
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken
     };
 
-  } catch (err) {
-    // If jwt.verify fails (e.g., token is expired or tampered with), it throws an error here
+  } catch (err: any) {
+    // If the error is our custom 403 from above, re-throw it
+    if (err.statusCode) throw err;
+
+    // Otherwise, jwt.verify failed (token is genuinely expired or tampered with)
+    console.error("JWT Verification Failed:", err.message);
     const error = new Error('Refresh token expired or invalid. Please log in again.');
     (error as any).statusCode = 403;
     throw error;
