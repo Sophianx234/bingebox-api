@@ -31,7 +31,13 @@ app.use('/api/movies', movieRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/watch', watchRoutes);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📖 Docs available at http://localhost:${PORT}/api-docs`);
-});
+// Only listen on a port if we are running locally!
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`📖 Docs available at http://localhost:${PORT}/api-docs`);
+  });
+}
+
+// THE CRITICAL VERCEL FIX: Export the app!
+export default app;
