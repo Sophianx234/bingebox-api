@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { generatePasswordResetToken, loginUserInDB, refreshUserTokenInDB, registerUserInDB } from '../services/user.service.js';
-import { generateToken } from '../utils/jwt.util.js';
 import { loginSchema, registerSchema } from '../validations/user.schema.js';
 import { sendEmail } from '../utils/mail.util.js';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import cloudinary from '../lib/cloudinary.js';
 import { updateUserAvatarInDB } from '../services/user.service.js';
+import { generateAccessToken } from '../utils/jwt.util.js';
 
 
 
@@ -28,7 +28,7 @@ export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<voi
 
     // 1. Convert the RAM buffer into a Base64 URI (Vercel-safe!)
     const b64 = Buffer.from(req.file.buffer).toString('base64');
-    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
     // 2. Upload directly to Cloudinary
     const cldRes = await cloudinary.uploader.upload(dataURI, {
@@ -59,7 +59,7 @@ export const createUser = async (req: Request, res: Response) => {
     const newUser = await registerUserInDB(validatedData);
 
     // 3. Security: Strip the password before sending the user back to the app
-    const token = generateToken({ 
+    const token = generateAccessToken({ 
   userId: newUser.id, 
   email: newUser.email 
 });
