@@ -32,9 +32,6 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
-      jwt:
-        specifier: ^0.2.0
-        version: 0.2.0
       multer:
         specifier: ^2.1.1
         version: 2.1.1
@@ -982,10 +979,6 @@ packages:
   jws@4.0.1:
     resolution: {integrity: sha512-EKI/M/yqPncGUUh44xz0PxSidXFr/+r0pA70+gIYhjv+et7yxM+s29Y+VGDkovRofQem0fs7Uvf4+YmAdyRduA==}
 
-  jwt@0.2.0:
-    resolution: {integrity: sha512-+lsJgK3p+dr7yCHO19Ap2uFh+pMSCayPRGjWmf3kYCnYfO+1kqz4DqA8s65HKYIrw5c2NBo+dEvzoZUco09j4Q==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
@@ -1093,9 +1086,6 @@ packages:
   node-addon-api@8.6.0:
     resolution: {integrity: sha512-gBVjCaqDlRUk0EwoPNKzIr9KkS9041G/q31IBShPs1Xz6UTA+EXdZADbzqAJQrpDRq71CIMnOP5VMut3SL0z5Q==}
     engines: {node: ^18 || ^20 || >= 21}
-
-  node-base64@0.0.1:
-    resolution: {integrity: sha512-lzWZQXvK7O1g5aKPCTYQJFGJc3MToEMlGmhXN+2UtkRYQz0OiWHoSMkfqQedUYCwWnixvsauH/IFsaFkrspjYQ==}
 
   node-fetch-native@1.6.7:
     resolution: {integrity: sha512-g9yhqoedzIUm0nTnTqAQvueMPVOuIY16bqgAJJC8XOOubYFNwz6IER9qs0Gq2Xd0+CecCKFjtdDTMA4u4xG06Q==}
@@ -2448,10 +2438,6 @@ snapshots:
       jwa: 2.0.1
       safe-buffer: 5.2.1
 
-  jwt@0.2.0:
-    dependencies:
-      node-base64: 0.0.1
-
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
@@ -2541,8 +2527,6 @@ snapshots:
   negotiator@1.0.0: {}
 
   node-addon-api@8.6.0: {}
-
-  node-base64@0.0.1: {}
 
   node-fetch-native@1.6.7: {}
 
