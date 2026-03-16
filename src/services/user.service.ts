@@ -39,7 +39,6 @@ export const loginUserInDB = async (data: LoginInput) => {
 
   // 2. Check existence and password
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    // Throw a custom error that the controller can catch
     const error = new Error('Invalid email or password');
     (error as any).statusCode = 401;
     throw error;
@@ -54,14 +53,18 @@ export const loginUserInDB = async (data: LoginInput) => {
     bio: user.bio,
   };
 
-  // 3. Generate the token
-  const token = generateAccessToken({ userId: user.id, email: user.email });
-
-  // 4. Return data (Service handles the logic of what to return)
+  // 3. Generate BOTH tokens
+  const accessToken = generateAccessToken({ userId: user.id, email: user.email });
   
+  // NOTE: Make sure you have a generateRefreshToken function in the same 
+  // file where generateAccessToken lives!
+  const refreshToken = generateRefreshToken({ userId: user.id });
+
+  // 4. Return the exact payload the React Native app needs
   return {
     user: sanitizedUser,
-    token
+    accessToken,   // <-- Changed from 'token'
+    refreshToken   // <-- Added
   };
 };
 

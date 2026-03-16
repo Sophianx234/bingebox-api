@@ -6,7 +6,7 @@ import { sendEmail } from '../utils/mail.util.js';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import cloudinary from '../lib/cloudinary.js';
 import { updateUserAvatarInDB } from '../services/user.service.js';
-import { generateAccessToken } from '../utils/jwt.util.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt.util.js';
 
 
 
@@ -52,40 +52,38 @@ export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<voi
 };
 export const createUser = async (req: Request, res: Response) => {
   try {
-    // 1. Validate the body (Zod handles birthdate strings, emails, etc.)
     const validatedData = registerSchema.parse(req.body);
-
-    // 2. Pass the WHOLE object to the service
     const newUser = await registerUserInDB(validatedData);
 
-    // 3. Security: Strip the password before sending the user back to the app
-    const token = generateAccessToken({ 
-  userId: newUser.id, 
-  email: newUser.email 
-});
+    // 1. Generate BOTH tokens using your existing utility functions
+    const accessToken = generateAccessToken({ 
+      userId: newUser.id, 
+      email: newUser.email 
+    });
+    
+    // Make sure you have a generateRefreshToken function in your utils!
+    // If you don't, you can just use jwt.sign() directly here.
+    const refreshToken = generateRefreshToken({ 
+      userId: newUser.id 
+    }); 
 
-// 3. Strip password and send response
-
-return res.status(201).json({
-  message: 'User created successfully!',
-  user: newUser,
-  token
-});
-
-   
+    // 2. Return the exact keys your mobile app is looking for
+    return res.status(201).json({
+      message: 'User created successfully!',
+      user: newUser,
+      accessToken,   // <-- CHANGED from 'token'
+      refreshToken   // <-- ADDED
+    });
 
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-  return res.status(400).json({ 
-    error: "Validation failed", 
-    // Change 'error.errors' to 'error.issues'
-    details: error.issues.map(e => ({ 
-      path: e.path[0], 
-      message: e.message 
-    })) 
-  });
-}   
-    // Check for Prisma "Unique Constraint" error (e.g., email already exists)
+      return res.status(400).json({ 
+        error: "Validation failed", 
+        details: error.issues.map(e => ({ path: e.path[0], message: e.message })) 
+      });
+    }   
+    
+    // Prisma "Unique Constraint" error
     if (error.code === 'P2002') {
       return res.status(409).json({ error: 'Email or Username already taken' });
     }
@@ -94,7 +92,6 @@ return res.status(201).json({
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 // Import the service we just wrote
 
