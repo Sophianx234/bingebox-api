@@ -78,7 +78,7 @@ export const refreshUserTokenInDB = async (clientRefreshToken: string) => {
     const decoded = jwt.verify(
       clientRefreshToken, 
       process.env.REFRESH_SECRET!
-    ) as { userId: string };
+    ) as { userId: number };
 
     // 2. Find the user in the database
     const user = await prisma.user.findUnique({ 
